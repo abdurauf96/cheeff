@@ -260,6 +260,9 @@ Route::group(['prefix' => 'v1', 'middleware' => ['block.ip']], function () {
 		Route::get('orders/table/{id}',             		  [Rest\OrderController::class, 'showByTableId']);
 		Route::get('orders/deliveryman/{id}',          		  [Rest\OrderController::class, 'showDeliveryman']);
 
+        //invoices
+        Route::post('invoice/create', [Rest\InvoiceController::class, 'create']);
+
 	});
 
     Route::group(['prefix' => 'payments', 'as' => 'payment.'], function () {
