@@ -261,7 +261,9 @@ Route::group(['prefix' => 'v1', 'middleware' => ['block.ip']], function () {
 		Route::get('orders/deliveryman/{id}',          		  [Rest\OrderController::class, 'showDeliveryman']);
 
         //invoices
-        Route::post('invoice/create', [Rest\InvoiceController::class, 'create']);
+        Route::post('transaction/create', [Rest\Pay\PayController::class, 'createTransaction']);
+        Route::post('transaction/pre-apply', [Rest\Pay\PayController::class, 'preApplyTransaction']);
+        Route::post('transaction/apply', [Rest\Pay\PayController::class, 'applyTransaction']);
 
 	});
 
