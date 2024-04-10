@@ -260,10 +260,15 @@ Route::group(['prefix' => 'v1', 'middleware' => ['block.ip']], function () {
 		Route::get('orders/table/{id}',             		  [Rest\OrderController::class, 'showByTableId']);
 		Route::get('orders/deliveryman/{id}',          		  [Rest\OrderController::class, 'showDeliveryman']);
 
-        //invoices
+        //get token from paymo service
+        Route::get('paymo/token', [Rest\Pay\GetTokenController::class, 'getToken']);
+
+        //transactions
         Route::post('transaction/create', [Rest\Pay\PayController::class, 'createTransaction']);
         Route::post('transaction/pre-apply', [Rest\Pay\PayController::class, 'preApplyTransaction']);
         Route::post('transaction/apply', [Rest\Pay\PayController::class, 'applyTransaction']);
+
+
 
 	});
 

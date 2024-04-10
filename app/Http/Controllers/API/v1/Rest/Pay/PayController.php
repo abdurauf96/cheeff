@@ -4,7 +4,9 @@ namespace App\Http\Controllers\API\v1\Rest\Pay;
 
 use App\Actions\InvoiceAction;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Pay\InvoiceRequest;
 use App\Http\Requests\Pay\PayRequest;
+use App\Models\Invoice;
 use Illuminate\Http\Request;
 
 class PayController extends Controller
@@ -14,33 +16,39 @@ class PayController extends Controller
     {
         $this->headers = [
             'Content-Type' => 'application/json',
-            'Authorization' => 'Bearer token',
+            'Authorization' => 'Bearer '.request()->header('Authorization'),
             'Host' => 'partner.atmos.uz',
         ];
     }
 
-    public function createTransaction(Request $request)
+    public function createTransaction(InvoiceRequest $request)
     {
-        $request->validate([
-            'user_id' => 'required',
-            'amount' => 'required',
-            'details' => 'array|required',
-        ]);
-        $invoiceId = (new InvoiceAction)->createInvoice($request->only('user_id', 'amount', 'details'));
         $postData = [
-            'account' => $invoiceId,
+            'account' => $request->user_id,
             'amount' => $request->amount,
             'store_id' => 7954,
         ];
+        try {
 
-        $result = \Http::withHeaders($this->headers)
-            ->post('https://partner.atmos.uz/merchant/pay/create', $postData)->body();
-        return response()->json([
-            'success' => true,
-            'data' => ['transaction_id' => $result['transaction_id']]
-        ]);
-
+            $response = \Http::withHeaders($this->headers)
+                ->post('https://partner.atmos.uz/merchant/pay/create', $postData)->body();
+            $invoiceData = $request->validated();
+            $invoiceData['transaction_id'] = $response['transaction_id'];
+            (new InvoiceAction)->createInvoice($invoiceData);
+            return response()->json([
+                'success' => true,
+                'message' => 'transaction created',
+                'data' => ['transaction_id' => $response['transaction_id']]
+            ]);
+        }catch (\Exception $e){
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'data' => []
+            ]);
+        }
     }
+
     public function preApplyTransaction(Request $request)
     {
         $request->validate([
@@ -48,13 +56,23 @@ class PayController extends Controller
             'card_number' => 'required',
             'expiry' => 'required',
         ]);
-        $postData = $request->only('transaction_id', 'card_number', 'expiry');
-        $postData['store_id'] = 7954;
-        $result = \Http::withHeaders($this->headers)->post('https://partner.atmos.uz/merchant/pay/pre-apply', $postData)->body();
-        return response()->json([
-            'success' => true,
-            'data' => []
-        ]);
+        try {
+            $postData = $request->only('transaction_id', 'card_number', 'expiry');
+            $postData['store_id'] = 7954;
+            $response = \Http::withHeaders($this->headers)->post('https://partner.atmos.uz/merchant/pay/pre-apply', $postData)->body();
+            return response()->json([
+                'success' => true,
+                'message' => 'code sent',
+                'data' => []
+            ]);
+        }catch (\Exception $e){
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'data' => []
+            ]);
+        }
+
     }
 
     public function applyTransaction(Request $request)
@@ -63,16 +81,26 @@ class PayController extends Controller
             'transaction_id' => 'required',
             'otp' => 'required',
         ]);
-        $postData = [
-            'otp' => $request->otp,
-            'transaction_id' => $request->transaction_id,
-            'store_id' => 7954,
-        ];
-        $result = \Http::withHeaders($this->headers)->post('https://partner.atmos.uz/merchant/pay/apply', $postData)->body();
-        return response()->json([
-            'success' => true,
-            'data' => []
-        ]);
+        try {
+            $postData = [
+                'otp' => $request->otp,
+                'transaction_id' => $request->transaction_id,
+                'store_id' => 7954,
+            ];
+            $response = \Http::withHeaders($this->headers)->post('https://partner.atmos.uz/merchant/pay/apply', $postData)->body();
+            Invoice::query()->where('transaction_id', $request->transaction_id)->update(['status'=>'payed']);
+            return response()->json([
+                'success' => true,
+                'message' => 'payment completed',
+                'data' => []
+            ]);
+        }catch (\Exception $e){
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'data' => []
+            ]);
+        }
 
     }
 }

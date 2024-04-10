@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Invoice extends Model
 {
-    protected $fillable = ['user_id', 'amount', 'details'];
+    protected $fillable = ['user_id', 'transaction_id', 'amount', 'details'];
 
     protected $attributes = ['status'=>'pending'];
 
