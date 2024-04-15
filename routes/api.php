@@ -269,7 +269,6 @@ Route::group(['prefix' => 'v1', 'middleware' => ['block.ip']], function () {
         Route::post('transaction/apply', [Rest\Pay\PayController::class, 'applyTransaction']);
 
 
-
 	});
 
     Route::group(['prefix' => 'payments', 'as' => 'payment.'], function () {

@@ -8,6 +8,7 @@ use App\Http\Requests\Pay\InvoiceRequest;
 use App\Http\Requests\Pay\PayRequest;
 use App\Models\Invoice;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 
 class PayController extends Controller
 {
@@ -16,7 +17,7 @@ class PayController extends Controller
     {
         $this->headers = [
             'Content-Type' => 'application/json',
-            'Authorization' => 'Bearer '.request()->header('Authorization'),
+            'Authorization' => request()->header('Authorization'),
             'Host' => 'partner.atmos.uz',
         ];
     }
@@ -26,19 +27,20 @@ class PayController extends Controller
         $postData = [
             'account' => $request->user_id,
             'amount' => $request->amount,
-            'store_id' => 7954,
+            'store_id' => config('atmos.store_id'),
         ];
-        try {
 
-            $response = \Http::withHeaders($this->headers)
-                ->post('https://partner.atmos.uz/merchant/pay/create', $postData)->body();
+        try {
+            $response = Http::withHeaders($this->headers)
+                ->post('https://partner.atmos.uz/merchant/pay/create', $postData);
+
             $invoiceData = $request->validated();
-            $invoiceData['transaction_id'] = $response['transaction_id'];
+            $invoiceData['transaction_id'] = $response->json()['transaction_id'];
             (new InvoiceAction)->createInvoice($invoiceData);
             return response()->json([
                 'success' => true,
                 'message' => 'transaction created',
-                'data' => ['transaction_id' => $response['transaction_id']]
+                'data' => ['transaction_id' => $response->json()['transaction_id']]
             ]);
         }catch (\Exception $e){
             return response()->json([
@@ -58,8 +60,10 @@ class PayController extends Controller
         ]);
         try {
             $postData = $request->only('transaction_id', 'card_number', 'expiry');
-            $postData['store_id'] = 7954;
-            $response = \Http::withHeaders($this->headers)->post('https://partner.atmos.uz/merchant/pay/pre-apply', $postData)->body();
+            $postData['store_id'] = config('atmos.store_id');
+
+            $response = Http::withHeaders($this->headers)->post('https://partner.atmos.uz/merchant/pay/pre-apply', $postData);
+
             return response()->json([
                 'success' => true,
                 'message' => 'code sent',
@@ -85,9 +89,9 @@ class PayController extends Controller
             $postData = [
                 'otp' => $request->otp,
                 'transaction_id' => $request->transaction_id,
-                'store_id' => 7954,
+                'store_id' => config('atmos.store_id'),
             ];
-            $response = \Http::withHeaders($this->headers)->post('https://partner.atmos.uz/merchant/pay/apply', $postData)->body();
+            Http::withHeaders($this->headers)->post('https://partner.atmos.uz/merchant/pay/apply', $postData);
             Invoice::query()->where('transaction_id', $request->transaction_id)->update(['status'=>'payed']);
             return response()->json([
                 'success' => true,
@@ -101,6 +105,5 @@ class PayController extends Controller
                 'data' => []
             ]);
         }
-
     }
 }
