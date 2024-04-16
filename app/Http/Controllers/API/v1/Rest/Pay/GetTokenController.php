@@ -7,11 +7,34 @@ use Illuminate\Support\Facades\Http;
 
 class GetTokenController extends Controller
 {
-    public function getToken()
+    public function token()
     {
         $consumerKey = config('atmos.consumer_key');
         $consumerSecret = config('atmos.consumer_secret');
         $base64Credentials = base64_encode($consumerKey . ':' . $consumerSecret);
+        $response = $this->getToken($base64Credentials);
+        if ($response->successful()) {
+            return response()->json([
+                'data' => ['token' => $response->json()['access_token']]
+            ]);
+        }
+    }
+
+    public function tokenCard()
+    {
+        $consumerKey = config('atmos.consumer_key_for_card');
+        $consumerSecret = config('atmos.consumer_secret_for_card');
+        $base64Credentials = base64_encode($consumerKey . ':' . $consumerSecret);
+        $response = $this->getToken($base64Credentials);
+        if ($response->successful()) {
+            return response()->json([
+                'data' => ['token-card' => $response->json()['access_token']]
+            ]);
+        }
+    }
+
+    public function getToken($base64Credentials)
+    {
         $data = [
             'grant_type' => 'client_credentials'
         ];
@@ -20,11 +43,6 @@ class GetTokenController extends Controller
             'Authorization' => 'Basic ' . $base64Credentials,
             'Content-Type' => 'application/x-www-form-urlencoded'
         ])->post('https://partner.atmos.uz/token', $data);
-
-        if ($response->successful()) {
-            return response()->json([
-                'data' => ['token' => $response->json()['access_token']]
-            ]);
-        }
+        return $response ;
     }
 }

@@ -261,13 +261,18 @@ Route::group(['prefix' => 'v1', 'middleware' => ['block.ip']], function () {
 		Route::get('orders/deliveryman/{id}',          		  [Rest\OrderController::class, 'showDeliveryman']);
 
         //get token from paymo service
-        Route::get('paymo/token', [Rest\Pay\GetTokenController::class, 'getToken']);
+        Route::get('paymo/token-card', [Rest\Pay\GetTokenController::class, 'tokenCard']);
+        Route::get('paymo/token', [Rest\Pay\GetTokenController::class, 'token']);
 
         //transactions
         Route::post('transaction/create', [Rest\Pay\PayController::class, 'createTransaction']);
         Route::post('transaction/pre-apply', [Rest\Pay\PayController::class, 'preApplyTransaction']);
         Route::post('transaction/apply', [Rest\Pay\PayController::class, 'applyTransaction']);
 
+        //bind cards
+        Route::post('card/init', [Rest\Pay\CardController::class, 'init']);
+        Route::post('card/confirm', [Rest\Pay\CardController::class, 'confirm']);
+        Route::post('card/list', [Rest\Pay\CardController::class, 'listCards']);
 
 	});
 
