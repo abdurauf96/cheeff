@@ -42,7 +42,7 @@ class GetTokenController extends Controller
         $response = Http::asForm()->withHeaders([
             'Authorization' => 'Basic ' . $base64Credentials,
             'Content-Type' => 'application/x-www-form-urlencoded'
-        ])->post('https://partner.atmos.uz/token', $data);
+        ])->post(config('atmos.atmos_partner_base_url').'/token', $data);
         return $response ;
     }
 }

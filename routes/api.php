@@ -269,6 +269,11 @@ Route::group(['prefix' => 'v1', 'middleware' => ['block.ip']], function () {
         Route::post('transaction/pre-apply', [Rest\Pay\PayController::class, 'preApplyTransaction']);
         Route::post('transaction/apply', [Rest\Pay\PayController::class, 'applyTransaction']);
 
+        //withdraw money
+        Route::get('withdraw/token', [Rest\Pay\WithDrawController::class, 'getToken']);
+        Route::post('withdraw/card/info', [Rest\Pay\WithDrawController::class, 'cardInfo']);
+        Route::post('withdraw/card/detail', [Rest\Pay\WithDrawController::class, 'cardDetail']);
+
         //bind cards
         Route::post('card/init', [Rest\Pay\CardController::class, 'init']);
         Route::post('card/confirm', [Rest\Pay\CardController::class, 'confirm']);

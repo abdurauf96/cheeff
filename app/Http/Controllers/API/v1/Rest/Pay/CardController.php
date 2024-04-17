@@ -9,12 +9,14 @@ use Illuminate\Support\Facades\Http;
 class CardController extends Controller
 {
     public array $headers;
+    public string $partner_base_url;
     public function __construct()
     {
         $this->headers = [
             'Content-Type' => 'application/json',
             'Authorization' => request()->header('Authorization'),
         ];
+        $this->partner_base_url = config('atmos.atmos_partner_base_url');
     }
     public function init(Request $request)
     {
@@ -25,7 +27,7 @@ class CardController extends Controller
         ];
         try {
             $response = Http::withHeaders($this->headers)
-                ->post('https://partner.atmos.uz/partner/bind-card/init', $postData);
+                ->post($this->partner_base_url.'/partner/bind-card/init', $postData);
             return response()->json([
                 'success' => true,
                 'data' => $response->json()
@@ -48,7 +50,7 @@ class CardController extends Controller
         ];
         try {
             $response = Http::withHeaders($this->headers)
-                ->post('https://partner.atmos.uz/partner/bind-card/confirm', $postData);
+                ->post($this->partner_base_url.'/partner/bind-card/confirm', $postData);
             return response()->json([
                 'success' => true,
                 'data' => $response->json()
@@ -70,7 +72,7 @@ class CardController extends Controller
         ];
         try {
             $response = Http::withHeaders($this->headers)
-                ->post('https://partner.atmos.uz/partner/list-cards', $postData);
+                ->post($this->partner_base_url.'/partner/list-cards', $postData);
             return response()->json([
                 'success' => true,
                 'data' => $response->json()
