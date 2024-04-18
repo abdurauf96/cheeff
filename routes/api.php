@@ -273,6 +273,9 @@ Route::group(['prefix' => 'v1', 'middleware' => ['block.ip']], function () {
         Route::get('withdraw/token', [Rest\Pay\WithDrawController::class, 'getToken']);
         Route::post('withdraw/card/info', [Rest\Pay\WithDrawController::class, 'cardInfo']);
         Route::post('withdraw/card/detail', [Rest\Pay\WithDrawController::class, 'cardDetail']);
+        Route::post('withdraw/card/transaction/create', [Rest\Pay\WithDrawController::class, 'createTransaction']);
+        Route::post('withdraw/card/transaction/apply', [Rest\Pay\WithDrawController::class, 'applyTransaction']);
+        Route::post('withdraw/card/transaction/details', [Rest\Pay\WithDrawController::class, 'detailsTransaction']);
 
         //bind cards
         Route::post('card/init', [Rest\Pay\CardController::class, 'init']);

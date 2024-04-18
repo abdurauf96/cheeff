@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API\v1\Rest\Pay;
 
 use App\Http\Controllers\Controller;
+use App\Models\WithDrawInvoice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
@@ -61,6 +62,57 @@ class WithDrawController extends Controller
             'card_id' => $request->card_id
         ];
         $response = Http::withHeaders($this->headers)->post($this->base_url.'/card/id', $data);
+
+        if ($response->failed()) {
+            return response()->json('something went wrong');
+        }
+        return response()->json([
+            'data' => $response->json()
+        ]);
+    }
+
+    public function createTransaction(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required',
+            'amount' => 'required',
+            'card_id' => 'required',
+        ]);
+        $invoice = WithDrawInvoice::query()->create($request->only('user_id', 'amount'));
+        $postData = [
+            'card_id' => $request->card_id,
+            'amount' => $request->amount,
+            'ext_id' => $invoice->id
+        ];
+        $response = Http::withHeaders($this->headers)->post($this->base_url.'/create', $postData);
+
+        if ($response->failed()) {
+            return response()->json('something went wrong');
+        }
+        return response()->json([
+            'data' => $response->json()
+        ]);
+    }
+
+    public function applyTransaction(Request $request)
+    {
+        $request->validate(['transaction_id' => 'required']);
+        $postData = ['transaction_id' => $request->transaction_id];
+        $response = Http::withHeaders($this->headers)->post($this->base_url.'/apply', $postData);
+        WithDrawInvoice::where('id', $response->json()['ext_id'])->update(['status' => 'payed']);
+        if ($response->failed()) {
+            return response()->json('something went wrong');
+        }
+        return response()->json([
+            'data' => $response->json()
+        ]);
+    }
+
+    public function detailsTransaction(Request $request)
+    {
+        $request->validate(['transaction_id' => 'required']);
+        $postData = ['transaction_id' => $request->transaction_id];
+        $response = Http::withHeaders($this->headers)->post($this->base_url.'/id', $postData);
 
         if ($response->failed()) {
             return response()->json('something went wrong');
