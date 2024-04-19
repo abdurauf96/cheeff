@@ -28,6 +28,10 @@ class CardController extends Controller
         try {
             $response = Http::withHeaders($this->headers)
                 ->post($this->partner_base_url.'/partner/bind-card/init', $postData);
+
+            if ($response->failed()){
+                throw new \Exception('something went wrong');
+            }
             return response()->json([
                 'success' => true,
                 'data' => $response->json()

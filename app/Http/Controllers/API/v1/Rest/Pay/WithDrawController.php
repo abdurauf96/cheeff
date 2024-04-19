@@ -27,12 +27,12 @@ class WithDrawController extends Controller
             'grant_type' => 'client_credentials'
         ];
         $response = Http::withHeaders([
-            'Authorization' => $base64Credentials,
+            'Authorization' => 'Basic '.$base64Credentials,
             'Content-Type' => 'application/json'
         ])->post($this->base_url.'/token', $data);
 
         if ($response->failed()) {
-            return response()->json('something went wrong');
+            return response()->json($response['error_description']);
         }
         return response()->json([
             'data' => ['token' => $response->json()['access_token']]

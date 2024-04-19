@@ -2,10 +2,8 @@
 
 namespace App\Http\Controllers\API\v1\Rest\Pay;
 
-use App\Actions\InvoiceAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Pay\InvoiceRequest;
-use App\Http\Requests\Pay\PayRequest;
 use App\Models\Invoice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -33,10 +31,10 @@ class PayController extends Controller
         try {
             $response = Http::withHeaders($this->headers)
                 ->post('https://partner.atmos.uz/merchant/pay/create', $postData);
-
             $invoiceData = $request->validated();
+
             $invoiceData['transaction_id'] = $response->json()['transaction_id'];
-            (new InvoiceAction)->createInvoice($invoiceData);
+            Invoice::create($invoiceData);
             return response()->json([
                 'success' => true,
                 'message' => 'transaction created',
