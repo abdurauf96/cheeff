@@ -28,7 +28,10 @@ class GetTokenController extends Controller
         $response = $this->getToken($base64Credentials);
         if ($response->successful()) {
             return response()->json([
-                'data' => ['token-card' => $response->json()['access_token']]
+                'data' => [
+                    'token-card' => $response->json()['access_token'],
+                    'expires_in' => $response->json()['expires_in']
+                ]
             ]);
         }
     }

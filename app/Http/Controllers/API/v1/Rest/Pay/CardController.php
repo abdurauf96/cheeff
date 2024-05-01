@@ -30,7 +30,7 @@ class CardController extends Controller
                 ->post($this->partner_base_url.'/partner/bind-card/init', $postData);
 
             if ($response->failed()){
-                throw new \Exception('something went wrong');
+                throw new \Exception('token expired');
             }
             return response()->json([
                 'success' => true,

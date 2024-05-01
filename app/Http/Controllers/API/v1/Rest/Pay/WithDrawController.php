@@ -32,10 +32,13 @@ class WithDrawController extends Controller
         ])->post($this->base_url.'/token', $data);
 
         if ($response->failed()) {
-            return response()->json($response['error_description']);
+            return response()->json('something went wrong');
         }
         return response()->json([
-            'data' => ['token' => $response->json()['access_token']]
+            'data' => [
+                'token' => $response->json()['access_token'],
+                'expires_in' => $response->json()['expires_in']
+            ]
         ]);
     }
 
@@ -45,11 +48,11 @@ class WithDrawController extends Controller
         $data = [
             'card_number' => $request->card_number
         ];
-        $response = Http::withHeaders($this->headers)->post($this->base_url.'/info', $data);
+        $response = Http::withHeaders($this->headers)->post($this->base_url.'/out/1.0.0/asl/info', $data);
 
-        if ($response->failed()) {
-            return response()->json('something went wrong');
-        }
+        if ($response->failed())
+            return $response;
+
         return response()->json([
             'data' => $response->json()
         ]);
@@ -61,11 +64,11 @@ class WithDrawController extends Controller
         $data = [
             'card_id' => $request->card_id
         ];
-        $response = Http::withHeaders($this->headers)->post($this->base_url.'/card/id', $data);
+        $response = Http::withHeaders($this->headers)->post($this->base_url.'/out/1.0.0/asl/card/id', $data);
 
-        if ($response->failed()) {
-            return response()->json('something went wrong');
-        }
+        if ($response->failed())
+            return $response;
+
         return response()->json([
             'data' => $response->json()
         ]);
@@ -84,11 +87,11 @@ class WithDrawController extends Controller
             'amount' => $request->amount,
             'ext_id' => $invoice->id
         ];
-        $response = Http::withHeaders($this->headers)->post($this->base_url.'/create', $postData);
+        $response = Http::withHeaders($this->headers)->post($this->base_url.'/out/1.0.0/asl/create', $postData);
 
-        if ($response->failed()) {
-            return response()->json('something went wrong');
-        }
+        if ($response->failed())
+            return $response;
+
         return response()->json([
             'data' => $response->json()
         ]);
@@ -98,11 +101,11 @@ class WithDrawController extends Controller
     {
         $request->validate(['transaction_id' => 'required']);
         $postData = ['transaction_id' => $request->transaction_id];
-        $response = Http::withHeaders($this->headers)->post($this->base_url.'/apply', $postData);
-        WithDrawInvoice::where('id', $response->json()['ext_id'])->update(['status' => 'payed']);
-        if ($response->failed()) {
-            return response()->json('something went wrong');
-        }
+        $response = Http::withHeaders($this->headers)->post($this->base_url.'/out/1.0.0/asl/apply', $postData);
+        WithDrawInvoice::where('id', $response->json()['data']['ext_id'])->update(['status' => 'payed']);
+        if ($response->failed())
+            return $response;
+
         return response()->json([
             'data' => $response->json()
         ]);
@@ -112,11 +115,11 @@ class WithDrawController extends Controller
     {
         $request->validate(['transaction_id' => 'required']);
         $postData = ['transaction_id' => $request->transaction_id];
-        $response = Http::withHeaders($this->headers)->post($this->base_url.'/id', $postData);
+        $response = Http::withHeaders($this->headers)->post($this->base_url.'/out/1.0.0/asl/id', $postData);
 
-        if ($response->failed()) {
-            return response()->json('something went wrong');
-        }
+        if ($response->failed())
+            return $response;
+
         return response()->json([
             'data' => $response->json()
         ]);
